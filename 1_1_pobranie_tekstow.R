@@ -8,8 +8,13 @@ lista_linkow <- strona_glowna %>%
   html_node(xpath = '//*[@id="post-2747"]/div/div/div/div/div/ul') %>%
   html_nodes("a") %>%
   html_attr("href")
+save(lista_linkow, file = "lista_linkow.rda")
 
-link <- lista_linkow[1]
+tytuly <- strona_glowna %>%
+  html_node(xpath = '//*[@id="post-2747"]/div/div/div/div/div/ul') %>%
+  html_nodes("a") %>%
+  html_text()
+save(tytuly, file = "tytuly.rda")
 
 zakres <- 1:732
 wiersze <- vector("list", max(zakres))
@@ -25,3 +30,16 @@ for(i in zakres) {
   wiersze[[i]] <- wiersz
 }
 save(wiersze, file = "wiersze.rda")
+
+daty <- vector("list",  max(zakres))
+
+for(i in zakres) {
+  data_proba <- read_html(lista_linkow[[i]])
+  tmp <- data_proba %>%
+    html_nodes(css = ".fusion-text")
+  daty[[i]] <- tmp[2] %>%
+    html_nodes("p")
+  cat(".")
+}
+save(daty, file = "daty.rda")
+
