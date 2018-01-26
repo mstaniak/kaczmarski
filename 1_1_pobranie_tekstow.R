@@ -31,15 +31,16 @@ for(i in zakres) {
 }
 save(wiersze, file = "wiersze.rda")
 
-daty <- vector("list",  max(zakres))
+daty <- vector("list", max(zakres))
 
-for(i in zakres) {
+for(i in 732) {
   data_proba <- read_html(lista_linkow[[i]])
   tmp <- data_proba %>%
     html_nodes(css = ".fusion-text")
-  daty[[i]] <- tmp[2] %>%
-    html_nodes("p")
+  daty[[i]] <- tmp[2]
   cat(".")
 }
 save(daty, file = "daty.rda")
 
+x <- html_text(daty[[70]])
+str_extract_all(x, "[0-9]{4}")
