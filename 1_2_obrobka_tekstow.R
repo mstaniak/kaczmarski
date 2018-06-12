@@ -5,9 +5,52 @@ load("wiersze.rda")
 load("tytuly.rda")
 load("daty.rda")
 # Usunięcie nawiasów z przodu
+wiersze2 <- lapply(wiersze, function(x) x)
 # Usunięcie znaków przestankowych
-# Usunięcie nadmiarowych białych znaków
+wiersze_bez_przestankowych <- lapply(wiersze2, function(x) str_replace_all(x, "-", " "))
+wiersze_bez_przestankowych <- lapply(wiersze_bez_przestankowych, function(x) str_replace_all(x, "[:punct:]+", ""))
 # Sprowadzenie wszystkich literów do małych liter
+wiersze_male_litery <- lapply(wiersze_bez_przestankowych, str_to_lower)
+wiersze_male_litery[[100]]
+# Podział na słowa
+wiersze_slowa <- lapply(wiersze_male_litery, function(x) str_split(x, " "))
+# Lematyzacja
+library(httr)
+library(xml2)
+getLemma <- function(t,u) {
+  p <- list(lpmn="any2txt|wcrft2",text=t,user=u)
+  s <- POST("http://ws.clarin-pl.eu/nlprest2/base/process", body = p, encode = "json", verbose())
+  r <- httr::content(s, "text")
+  r <- gsub('[[:punct:] ]+','',unlist(as_list(xml_find_all(read_xml(r),"//base"))))
+  return(r[r != ""])
+}
+proba_lemma <- getLemma(wiersze_male_litery[[1]], "mateusz.staniak@math.uni.wroc.pl")
+proba_lemma
+wiersze_lematyzacja <- vector("list", 732)
+for(i in 80:732) {
+  wiersze_lematyzacja[[i]] <- try(getLemma(wiersze_male_litery[[i]], "mateusz.staniak@math.uni.wroc.pl"))
+}
+save(wiersze_lematyzacja, file = "wiersze_lematyzacja.rda")
+# Usunięcie słów stopu
+stopwords <- c("a", "aby", "ale", "bardziej", "bardzo", "bez", "bo", "bowiem", "był", "była",
+               "było", "były", "będzie", "co", "czy", "czyli", "dla", "dlatego", "do", "gdy",
+               "gdzie", "go", "i", "ich", "im", "innych", "iż", "jak", "jako", "jednak", "jego",
+               "jej", "jest", "jeszcze", "jeśli", "już", "kiedy", "kilka", "która", "które", "którego",
+               "której", "który", "których", "którym", "którzy", "lub", "ma", "mi", "między", "mnie",
+               "mogą", "może", "można", "na", "nad", "nam", "nas", "naszego", "naszych", "nawet", "nich",
+               "nie", "nim", "niż", "o", "od", "oraz", "po", "pod", "poza", "przed", "przede", "przez",
+               "przy", "również", "się", "sobie", "swoje", "są", "ta", "tak", "takie", "także", "tam",
+               "te", "tego", "tej", "ten", "też", "to", "tu", "tych", "tylko", "tym", "u", "w", "we", "wiele",
+               "wielu", "więc", "wszystkich", "wszystkim", "wszystko", "właśnie", "z", "za", "zawsze", "ze", "że")
+# Pobrac wiekszy zestaw
+stop_words_link <- "https://www.ranks.nl/stopwords/polish"
+wiersze_bez_stopu <- lapply(wiersze_lematyzacja, function(x) x[!(x %in% stopwords)])
+# wiersze_bez_stopu <- lapply(wiersze_lematyzacja1_79, function(x) setdiff(x, stopwords))
+wiersze_bez_stopu[[2]]
+library(wordcloud)
+czeste_slowa <- as.data.frame(table(unlist(wiersze_bez_stopu))) %>%
+  arrange(desc(Freq))
+save(czeste_slowa, file = "czeste_slowa.rda")
 ### Czy daty są dobrze ściągnięte?
 daty_tekst <- lapply(daty, html_text)
 same_daty <- str_extract_all(daty_tekst, "[0-9]{4}")
