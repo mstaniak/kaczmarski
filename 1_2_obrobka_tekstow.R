@@ -37,8 +37,25 @@ wiersze_bez_stopu_unikalne <- lapply(wiersze_lematyzacja, function(x) setdiff(x,
 wiersze_bez_stopu <- lapply(wiersze_lematyzacja, function(x) x[!(x %in% stop_words)])
 save(wiersze_bez_stopu_unikalne, file = "wiersze_bez_stopu_unikalne.rda")
 save(wiersze_bez_stopu, file = "wiersze_bez_stopu.rda")
+
 library(wordcloud)
 czeste_slowa <- as.data.frame(table(unlist(wiersze_bez_stopu))) %>%
   arrange(desc(Freq))
 head(czeste_slowa, 20)
 save(czeste_slowa, file = "czeste_slowa.rda")
+
+liczebniki <- c("zero", "jeden", "dwa", "trzy", "cztery", "pięć", "sześć",
+                "siedem", "osiem", "dziewięć", "dziesięć", "jedenaście",
+                "dwanaście", "trzynaście", "czternaście", "piętnaście",
+                "szesnaście", "siedemnaście", "osiemnaście", "dziewiętnaście",
+                "dwadzieścia", "trzydzieści", "czterdzieści", "pięćdziesiąt",
+                "sześćdziesiąt", "siedemdziesiąt", "osiemdziesiąt",
+                "dziewięćdziesiąt", "sto", "tysiąc", "milion")
+wiersze_bez_liczebnikow <- lapply(wiersze_bez_stopu,
+                                  function(x) x[!(x %in% liczebniki)])
+
+wiersze_bez_stopu_vecs <- sapply(wiersze_bez_stopu,
+                                 function(x) paste(x, collapse = " "))
+wiersze_bez_liczebnikow_vecs <- sapply(wiersze_bez_liczebnikow,
+                                       function(x) paste(x, collapse = " "))
+
